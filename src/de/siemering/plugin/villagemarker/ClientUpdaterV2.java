@@ -4,17 +4,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.server.v1_6_R3.ChunkCoordinates;
-import net.minecraft.server.v1_6_R3.MinecraftServer;
-import net.minecraft.server.v1_6_R3.Packet250CustomPayload;
-import net.minecraft.server.v1_6_R3.Village;
-import net.minecraft.server.v1_6_R3.VillageDoor;
-import net.minecraft.server.v1_6_R3.WorldServer;
+
+import net.minecraft.server.v1_7_R1.ChunkCoordinates;
+import net.minecraft.server.v1_7_R1.MinecraftServer;
+import net.minecraft.server.v1_7_R1.PacketPlayOutCustomPayload;
+import net.minecraft.server.v1_7_R1.Village;
+import net.minecraft.server.v1_7_R1.VillageDoor;
+import net.minecraft.server.v1_7_R1.WorldServer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_6_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+
+import com.google.common.base.Charsets;
 
 public class ClientUpdaterV2 extends Thread {
 	private static int id = 0;
@@ -84,19 +87,24 @@ public class ClientUpdaterV2 extends Thread {
 
 				// Datenstrings verschicken
 				for (String data : dataStringList) {
-					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-					DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
+//					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//					DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
 
-					for (int i = 0; i < data.length(); i++) {
-						dataOutputStream.writeChar(data.charAt(i));
-					}
+//					for (int i = 0; i < data.length(); i++) {
+//						dataOutputStream.writeChar(data.charAt(i));
+//					}
 
 					// Player benachrichtigen
 					for (Player p : players) {
 						// Überprüfen der Berechntigungen/Einstellung
+						
+//						System.out.println("Rechte verfügbar für "+ p.getDisplayName() + ": " + (p.hasPermission(VillageMarker.VILLAGEPERMISSION) && pconfig.getBoolean(p.getName(), true)));
+						
 						if (p.hasPermission(VillageMarker.VILLAGEPERMISSION) && pconfig.getBoolean(p.getName(), true)) {
 							try {
-								Packet250CustomPayload packet = new Packet250CustomPayload("KVM|Data", byteArrayOutputStream.toByteArray());
+//								PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", byteArrayOutputStream.toByteArray());
+								PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", data.getBytes(Charsets.UTF_8));
+								
 								((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
 							} catch (Exception e) {
 								Logger.logException(e);
@@ -108,17 +116,17 @@ public class ClientUpdaterV2 extends Thread {
 				// Suche nach Spielern, die keine Informationen haben möchten und sende leere Informationen.
 				String leerInfo = id + "<" + dim + ":" + "1:1>" + dim;
 				
-				ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-				DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
-				
-				for (int i = 0; i < leerInfo.length(); i++) {
-					dataOutputStream.writeChar(leerInfo.charAt(i));
-				}
+//				ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//				DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
+//				
+//				for (int i = 0; i < leerInfo.length(); i++) {
+//					dataOutputStream.writeChar(leerInfo.charAt(i));
+//				}
 				
 				for (Player p : players) {
 					if (!pconfig.getBoolean(p.getName(), true) || !p.hasPermission(VillageMarker.VILLAGEPERMISSION)) {
 						try {
-							Packet250CustomPayload packet = new Packet250CustomPayload("KVM|Data", byteArrayOutputStream.toByteArray());
+							PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", leerInfo.getBytes(Charsets.UTF_8));
 							((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
 						} catch (Exception e) {
 							Logger.logException(e);
