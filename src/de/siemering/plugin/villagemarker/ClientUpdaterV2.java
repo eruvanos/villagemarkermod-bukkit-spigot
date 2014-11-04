@@ -4,18 +4,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-
-import net.minecraft.server.v1_6_R2.ChunkCoordinates;
-import net.minecraft.server.v1_6_R2.MinecraftServer;
-import net.minecraft.server.v1_6_R2.Packet250CustomPayload;
-import net.minecraft.server.v1_6_R2.Village;
-import net.minecraft.server.v1_6_R2.VillageDoor;
-import net.minecraft.server.v1_6_R2.WorldServer;
+import net.minecraft.server.v1_6_R3.ChunkCoordinates;
+import net.minecraft.server.v1_6_R3.MinecraftServer;
+import net.minecraft.server.v1_6_R3.Packet250CustomPayload;
+import net.minecraft.server.v1_6_R3.Village;
+import net.minecraft.server.v1_6_R3.VillageDoor;
+import net.minecraft.server.v1_6_R3.WorldServer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_6_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_6_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 public class ClientUpdaterV2 extends Thread {
@@ -23,7 +21,7 @@ public class ClientUpdaterV2 extends Thread {
 
 	private boolean stop = false;
 	private YamlConfiguration pconfig;
-
+	
 	public ClientUpdaterV2(YamlConfiguration pconfig) {
 		super();
 		this.pconfig = pconfig;
@@ -103,7 +101,7 @@ public class ClientUpdaterV2 extends Thread {
 							} catch (Exception e) {
 								Logger.logException(e);
 							}
-						}
+						} 
 					}
 				}
 
@@ -118,7 +116,7 @@ public class ClientUpdaterV2 extends Thread {
 				}
 				
 				for (Player p : players) {
-					if (!pconfig.getBoolean(p.getName(), true)) {
+					if (!pconfig.getBoolean(p.getName(), true) || !p.hasPermission(VillageMarker.VILLAGEPERMISSION)) {
 						try {
 							Packet250CustomPayload packet = new Packet250CustomPayload("KVM|Data", byteArrayOutputStream.toByteArray());
 							((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);

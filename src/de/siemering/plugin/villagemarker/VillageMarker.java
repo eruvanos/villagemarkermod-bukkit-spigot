@@ -2,6 +2,7 @@ package de.siemering.plugin.villagemarker;
 
 import java.io.File;
 import java.io.IOException;
+
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,6 +18,7 @@ public class VillageMarker extends JavaPlugin {
 	private String CONFIGPATH;
 	private ClientUpdaterV2 updater;
 
+	
 	@Override
 	public void onEnable() {
 		super.onEnable();
