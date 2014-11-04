@@ -25,7 +25,7 @@ public abstract class CommandHandler implements CommandExecutor {
 		}
 		
 		//Überprüfe, ob Sender Rechte hat
-		if(! sender.hasPermission("permission")){
+		if(! sender.hasPermission("villagemarker")){
 			sender.sendMessage("You doesn't have the permission to use this command.");
 			return false;
 		}
