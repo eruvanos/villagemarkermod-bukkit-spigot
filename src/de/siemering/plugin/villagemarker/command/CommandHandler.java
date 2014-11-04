@@ -1,9 +1,15 @@
 package de.siemering.plugin.villagemarker.command;
 
+import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_7_R1.CraftServer;
 import org.bukkit.entity.Player;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 public abstract class CommandHandler implements CommandExecutor {
 
@@ -17,14 +23,14 @@ public abstract class CommandHandler implements CommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] arg) {
-		
+
 		//Consolenbefehle ignorieren
 		if (! (sender instanceof Player) || allowConsol){
 			sender.sendMessage("Just player are able to use this command.");
 			return false;
 		}
 		
-		//Überprüfe, ob Sender Rechte hat
+		//ï¿½berprï¿½fe, ob Sender Rechte hat
 		if(! sender.hasPermission("villagemarker")){
 			sender.sendMessage("You doesn't have the permission to use this command.");
 			return false;
@@ -34,7 +40,7 @@ public abstract class CommandHandler implements CommandExecutor {
 	}
 	
 	/**
-	 * Diese Methode wird aufgerufen, sobald überprüft wurde, ob der Sender die benötigten Bedingungen erfüllt.
+	 * Diese Methode wird aufgerufen, sobald ueberprueft wurde, ob der Sender die benoetigten Bedingungen erfuellt.
 	 */
 	protected abstract boolean executeCommand(CommandSender sender, Command command, String label, String[] arg);
 

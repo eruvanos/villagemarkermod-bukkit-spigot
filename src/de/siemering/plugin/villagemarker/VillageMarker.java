@@ -34,6 +34,7 @@ public class VillageMarker extends JavaPlugin {
 		// commands
 		getCommand("vm").setExecutor(new VMCommand(pconfig));
 
+
 	}
 
 	@Override

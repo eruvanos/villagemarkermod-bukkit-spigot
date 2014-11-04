@@ -1,187 +1,157 @@
 package de.siemering.plugin.villagemarker;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.server.v1_7_R1.ChunkCoordinates;
-import net.minecraft.server.v1_7_R1.MinecraftServer;
-import net.minecraft.server.v1_7_R1.PacketPlayOutCustomPayload;
-import net.minecraft.server.v1_7_R1.Village;
-import net.minecraft.server.v1_7_R1.VillageDoor;
-import net.minecraft.server.v1_7_R1.WorldServer;
-
-import org.bukkit.Bukkit;
+import com.google.common.base.Charsets;
+import net.minecraft.server.v1_7_R1.*;
+import org.bukkit.*;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-import com.google.common.base.Charsets;
+import java.util.*;
 
 public class ClientUpdaterV2 extends Thread {
-	private static int id = 0;
+    private static int id = 0;
 
-	private boolean stop = false;
-	private YamlConfiguration pconfig;
-	
-	public ClientUpdaterV2(YamlConfiguration pconfig) {
-		super();
-		this.pconfig = pconfig;
-	}
+    private boolean stop = false;
+    private YamlConfiguration pconfig;
 
-	/**
-	 * Setzt die Laufvariable "stop" auf gewünschten Wert. Sobald die Variable auf true gesetzt wird, wird sich das Plugin nach der nächsten Updateverteilung an die Clients beenden.
-	 * 
-	 * @param stop
-	 */
-	public void setStop(boolean stop) {
-		this.stop = stop;
-	}
+    public ClientUpdaterV2(YamlConfiguration pconfig) {
+        super();
+        this.pconfig = pconfig;
+    }
 
-	/**
-	 * Sendet alle 2 Sekunden ein Update der Villageinformationen an alle Clients mit den benötigten Rechten.
-	 */
-	@Override
-	public void run() {
+    /**
+     * Setzt die Laufvariable "stop" auf gewuenschten Wert. Sobald die Variable auf true gesetzt wird, wird sich das Plugin nach der naechsten Updateverteilung an die Clients beenden.
+     *
+     * @param stop
+     */
+    public void setStop(boolean stop) {
+        this.stop = stop;
+    }
 
-		while (!stop) {
-			sendUpdate();
+    /**
+     * Sendet alle 2 Sekunden ein Update der Villageinformationen an alle Clients mit den benoetigten Rechten.
+     */
+    @Override
+    public void run() {
+        while (!stop) {
+            sendUpdateNEW();
 
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-			}
-		}
-	}
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
 
-	private void sendUpdate() {
-		id = id >= 999 ? 0 : id + 1;
+    private void sendUpdateNEW() {
+        id = id >= 999 ? 0 : id + 1;
 
-		for (int index = 0; index <= 2; index++) {
-			try {
+        Player[] players = Bukkit.getOnlinePlayers();
+        Map<UUID, List<String>> dataStringCache = new HashMap<UUID, List<String>>();
+        Map<UUID, WorldServer> worldCache = new HashMap<UUID, WorldServer>();
 
-				// Player suchen
-				Player[] players = Bukkit.getOnlinePlayers();
+        List<WorldServer> worlds = MinecraftServer.getServer().worlds;
+        for (WorldServer world : worlds) {
+            worldCache.put(world.getWorld().getUID(), world);
+        }
 
-				// Datenstring erstellen
-				String dataString = createDataString(index);
-				String dim = indexToDimension(index);
+        for (Player player : players) {
+            List<String> dataStringList;
 
-				// Datenstring ggf aufteilen
-				int parts = 1;
-				ArrayList<String> dataStringList = new ArrayList<String>();
+            UUID worldUID = player.getWorld().getUID();
 
-				if (dataString.length() > 10000) {
-					parts = (int) Math.ceil(dataString.length() / 10000.);
+            //Datastring erstellen und ggf cachen
+            if (dataStringCache.containsKey(worldUID)) {
+                dataStringList = dataStringCache.get(worldUID);
+            } else {
 
-					for (int xPart = 0; xPart < parts; xPart++) {
-						if (xPart + 1 == parts)
-							dataStringList.add(id + "<" + dim + ":" + (xPart + 1) + ":" + parts + ">" + dataString.substring(10000 * xPart, dataString.length()));
-						else
-							dataStringList.add(id + "<" + dim + ":" + (xPart + 1) + ":" + parts + ">" + dataString.substring(10000 * xPart, 10000 * xPart + 10000));
-					}
-				} else {
-					dataStringList.add(id + "<" + dim + ":" + "1:1>" + dataString);
-				}
+                dataStringList = generateDataString(worldCache.get(worldUID));
+                dataStringCache.put(worldUID, dataStringList);
+            }
 
-				// Datenstrings verschicken
-				for (String data : dataStringList) {
-//					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//					DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
+            //Versende Daten
+            sendDataToPlayer(player, dataStringList, worldServerTodim(worldCache.get(worldUID)));
+        }
 
-//					for (int i = 0; i < data.length(); i++) {
-//						dataOutputStream.writeChar(data.charAt(i));
-//					}
+    }
 
-					// Player benachrichtigen
-					for (Player p : players) {
-						// Überprüfen der Berechntigungen/Einstellung
-						
-//						System.out.println("Rechte verfügbar für "+ p.getDisplayName() + ": " + (p.hasPermission(VillageMarker.VILLAGEPERMISSION) && pconfig.getBoolean(p.getName(), true)));
-						
-						if (p.hasPermission(VillageMarker.VILLAGEPERMISSION) && pconfig.getBoolean(p.getName(), true)) {
-							try {
-//								PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", byteArrayOutputStream.toByteArray());
-								PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", data.getBytes(Charsets.UTF_8));
-								
-								((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
-							} catch (Exception e) {
-								Logger.logException(e);
-							}
-						} 
-					}
-				}
 
-				// Suche nach Spielern, die keine Informationen haben möchten und sende leere Informationen.
-				String leerInfo = id + "<" + dim + ":" + "1:1>" + dim;
-				
-//				ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//				DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
-//				
-//				for (int i = 0; i < leerInfo.length(); i++) {
-//					dataOutputStream.writeChar(leerInfo.charAt(i));
-//				}
-				
-				for (Player p : players) {
-					if (!pconfig.getBoolean(p.getName(), true) || !p.hasPermission(VillageMarker.VILLAGEPERMISSION)) {
-						try {
-							PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", leerInfo.getBytes(Charsets.UTF_8));
-							((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
-						} catch (Exception e) {
-							Logger.logException(e);
-						}
-					}
-				}
+    private List<String> generateDataString(WorldServer world) {
+        int dim = worldServerTodim(world);
 
-			} catch (Exception e) {
-				Logger.logException(e);
-			}
+        //DataString erstellen
+        List<Village> vs = world.villages.getVillages();
+        StringBuilder sb = new StringBuilder("" + dim);
+        for (Village village : vs) {
 
-		}
-	}
+            sb.append(":" + village.getSize());
+            ChunkCoordinates center = village.getCenter();
+            sb.append(";" + center.x + "," + center.y + "," + center.z);
+            List ds = village.getDoors();
+            for (Object obj : ds) {
 
-	// TODO Code erklären
-	private String createDataString(int index) {
+                VillageDoor d = (VillageDoor) obj;
+                sb.append(";" + d.locX + "," + d.locY + "," + d.locZ);
+            }
+        }
 
-		// Check if there are really three worlds. Maybe nether or end has been disabled.
-		List<WorldServer> worlds = MinecraftServer.getServer().worlds;
-		if (index >= 0 && index < worlds.size()) {
-			try {
-				List<Village> vs = MinecraftServer.getServer().worlds.get(index).villages.getVillages();
-				StringBuilder sb = new StringBuilder(indexToDimension(index));
-				for (Village village : vs) {
+        // Datenstring ggf aufteilen
+        String dataString = sb.toString();
+        ArrayList<String> dataStringList = new ArrayList<String>();
 
-					sb.append(":" + village.getSize());
-					ChunkCoordinates center = village.getCenter();
-					sb.append(";" + center.x + "," + center.y + "," + center.z);
-					List ds = village.getDoors();
-					for (Object obj : ds) {
+        if (dataString.length() > 10000) {
+            int parts = (int) Math.ceil(dataString.length() / 10000.);
 
-						VillageDoor d = (VillageDoor) obj;
-						sb.append(";" + d.locX + "," + d.locY + "," + d.locZ);
-					}
-				}
-				return sb.toString();
+            for (int xPart = 0; xPart < parts; xPart++) {
+                if (xPart + 1 == parts)
+                    dataStringList.add(id + "<" + dim + ":" + (xPart + 1) + ":" + parts + ">" + dataString.substring(10000 * xPart, dataString.length()));
+                else
+                    dataStringList.add(id + "<" + dim + ":" + (xPart + 1) + ":" + parts + ">" + dataString.substring(10000 * xPart, 10000 * xPart + 10000));
+            }
+        } else {
+            dataStringList.add(id + "<" + dim + ":" + "1:1>" + dataString);
+        }
 
-			} catch (Exception e) {
-				Logger.logException(e);
-			}
-		}
-		return indexToDimension(index);
-	}
+        return dataStringList;
+    }
 
-	private String indexToDimension(int index) {
-		switch (index) {
-		case 1:
-			return "-1";
-		case 0:
-			return "0";
-		case 2:
-			return "1";
-		default:
-			return "0";
-		}
-	}
+    private void sendDataToPlayer(Player p, List<String> dataStringList, int dim) {
+
+
+        if (p.hasPermission(VillageMarker.VILLAGEPERMISSION) && pconfig.getBoolean(p.getName(), true)) {
+            for (String data : dataStringList) {
+                try {
+                    PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", data.getBytes(Charsets.UTF_8));
+                    ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
+                } catch (Exception e) {
+                    Logger.logException(e);
+                }
+            }
+        } else {
+            String leerInfo = id + "<" + dim + ":" + "1:1>" + dim;
+            try {
+                PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", leerInfo.getBytes(Charsets.UTF_8));
+                ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
+            } catch (Exception e) {
+                Logger.logException(e);
+            }
+        }
+    }
+
+    private int worldServerTodim(WorldServer worldServer){
+        World.Environment environment = worldServer.getWorld().getEnvironment();
+
+        if(environment == World.Environment.NORMAL){
+            return 0;
+        } else if(environment == World.Environment.NETHER){
+            return -1;
+        } else {
+            return 1;
+        }
+
+    }
+
 
 }
