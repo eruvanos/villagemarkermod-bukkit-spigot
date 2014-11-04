@@ -14,14 +14,20 @@ import net.minecraft.server.v1_6_R2.VillageDoor;
 import net.minecraft.server.v1_6_R2.WorldServer;
 
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.v1_6_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 public class ClientUpdaterV2 extends Thread {
+	private static int id = 0;
 
 	private boolean stop = false;
+	private YamlConfiguration pconfig;
 
-	private static int id = 0;
+	public ClientUpdaterV2(YamlConfiguration pconfig) {
+		super();
+		this.pconfig = pconfig;
+	}
 
 	/**
 	 * Setzt die Laufvariable "stop" auf gewünschten Wert. Sobald die Variable auf true gesetzt wird, wird sich das Plugin nach der nächsten Updateverteilung an die Clients beenden.
@@ -78,8 +84,6 @@ public class ClientUpdaterV2 extends Thread {
 					dataStringList.add(id + "<" + dim + ":" + "1:1>" + dataString);
 				}
 
-				// Bukkit.getLogger().log(Level.INFO,"[VillageMarker] " + "Teile Datastring into Parts: " + dataStringList.size());
-
 				// Datenstrings verschicken
 				for (String data : dataStringList) {
 					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -91,23 +95,41 @@ public class ClientUpdaterV2 extends Thread {
 
 					// Player benachrichtigen
 					for (Player p : players) {
-						// Überprüfen der Berechntigungen
-						if (p.hasPermission(VillageMarker.VILLAGEPERMISSION)) {
+						// Überprüfen der Berechntigungen/Einstellung
+						if (p.hasPermission(VillageMarker.VILLAGEPERMISSION) && pconfig.getBoolean(p.getName(), true)) {
 							try {
 								Packet250CustomPayload packet = new Packet250CustomPayload("KVM|Data", byteArrayOutputStream.toByteArray());
 								((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
-
-								// Bukkit.getLogger().log(Level.INFO,"Sende:" + data);
-								// throw new Exception("Index 1: Size 2");
-
 							} catch (Exception e) {
-								VillageMarker.logException(e);
+								Logger.logException(e);
 							}
 						}
 					}
 				}
+
+				// Suche nach Spielern, die keine Informationen haben möchten und sende leere Informationen.
+				String leerInfo = id + "<" + dim + ":" + "1:1>" + dim;
+				
+				ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+				DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
+				
+				for (int i = 0; i < leerInfo.length(); i++) {
+					dataOutputStream.writeChar(leerInfo.charAt(i));
+				}
+				
+				for (Player p : players) {
+					if (!pconfig.getBoolean(p.getName(), true)) {
+						try {
+							Packet250CustomPayload packet = new Packet250CustomPayload("KVM|Data", byteArrayOutputStream.toByteArray());
+							((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
+						} catch (Exception e) {
+							Logger.logException(e);
+						}
+					}
+				}
+
 			} catch (Exception e) {
-				VillageMarker.logException(e);
+				Logger.logException(e);
 			}
 
 		}
@@ -115,8 +137,8 @@ public class ClientUpdaterV2 extends Thread {
 
 	// TODO Code erklären
 	private String createDataString(int index) {
-		
-		//Check if there are really three worlds. Maybe nether or end has been disabled.
+
+		// Check if there are really three worlds. Maybe nether or end has been disabled.
 		List<WorldServer> worlds = MinecraftServer.getServer().worlds;
 		if (index >= 0 && index < worlds.size()) {
 			try {
@@ -137,7 +159,7 @@ public class ClientUpdaterV2 extends Thread {
 				return sb.toString();
 
 			} catch (Exception e) {
-				VillageMarker.logException(e);
+				Logger.logException(e);
 			}
 		}
 		return indexToDimension(index);
