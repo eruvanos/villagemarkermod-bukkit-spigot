@@ -1,11 +1,11 @@
 package de.siemering.plugin.villagemarker;
 
 import com.google.common.base.Charsets;
-import net.minecraft.server.v1_7_R1.*;
+import net.minecraft.server.v1_7_R4.*;
 import org.bukkit.*;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -48,7 +48,7 @@ public class ClientUpdaterV2 extends Thread {
     private void sendUpdateNEW() {
         id = id >= 999 ? 0 : id + 1;
 
-        Player[] players = Bukkit.getOnlinePlayers();
+        Collection<? extends Player> players = Bukkit.getOnlinePlayers();
         Map<UUID, List<String>> dataStringCache = new HashMap<UUID, List<String>>();
         Map<UUID, WorldServer> worldCache = new HashMap<UUID, WorldServer>();
 

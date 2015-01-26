@@ -5,7 +5,6 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_7_R1.CraftServer;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
