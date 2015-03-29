@@ -1,14 +1,9 @@
 package de.siemering.plugin.villagemarker.command;
 
-import org.bukkit.Server;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 public abstract class CommandHandler implements CommandExecutor {
 
@@ -30,7 +25,7 @@ public abstract class CommandHandler implements CommandExecutor {
 		}
 		
 		//�berpr�fe, ob Sender Rechte hat
-		if(! sender.hasPermission("villagemarker")){
+		if(! sender.hasPermission(permission)){
 			sender.sendMessage("You doesn't have the permission to use this command.");
 			return false;
 		}

@@ -1,13 +1,17 @@
 package de.siemering.plugin.villagemarker;
 
 import com.google.common.base.Charsets;
-import net.minecraft.server.v1_7_R4.*;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufUtil;
+import net.minecraft.server.v1_8_R2.*;
 import org.bukkit.*;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_8_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
+import java.nio.CharBuffer;
 import java.util.*;
 
 public class ClientUpdaterV2 extends Thread {
@@ -23,8 +27,6 @@ public class ClientUpdaterV2 extends Thread {
 
     /**
      * Setzt die Laufvariable "stop" auf gewuenschten Wert. Sobald die Variable auf true gesetzt wird, wird sich das Plugin nach der naechsten Updateverteilung an die Clients beenden.
-     *
-     * @param stop
      */
     public void setStop(boolean stop) {
         this.stop = stop;
@@ -41,6 +43,7 @@ public class ClientUpdaterV2 extends Thread {
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
+                //
             }
         }
     }
@@ -82,18 +85,19 @@ public class ClientUpdaterV2 extends Thread {
         int dim = worldServerTodim(world);
 
         //DataString erstellen
-        List<Village> vs = world.villages.getVillages();
+        List<Village> vs = VillageAccessor.getVillages(world).getVillages();
         StringBuilder sb = new StringBuilder("" + dim);
         for (Village village : vs) {
 
-            sb.append(":" + village.getSize());
-            ChunkCoordinates center = village.getCenter();
-            sb.append(";" + center.x + "," + center.y + "," + center.z);
-            List ds = village.getDoors();
+            sb.append(":").append(village.c());
+             BlockPosition center = village.a();
+            sb.append(";").append(center.getX()).append(",").append(center.getY()).append(",").append(center.getZ());
+            List ds = village.f();
             for (Object obj : ds) {
 
                 VillageDoor d = (VillageDoor) obj;
-                sb.append(";" + d.locX + "," + d.locY + "," + d.locZ);
+                //.d() oder .e()
+                sb.append(";").append(d.d().getX()).append(",").append(d.d().getY()).append(",").append(d.d().getZ());
             }
         }
 
@@ -123,7 +127,10 @@ public class ClientUpdaterV2 extends Thread {
         if (p.hasPermission(VillageMarker.VILLAGEPERMISSION) && pconfig.getBoolean(p.getName(), true)) {
             for (String data : dataStringList) {
                 try {
-                    PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", data.getBytes(Charsets.UTF_8));
+                    ByteBuf byteBuf = ByteBufUtil.encodeString(ByteBufAllocator.DEFAULT, CharBuffer.wrap(data), Charsets.UTF_8);
+                    PacketDataSerializer packetDataSerializer = new PacketDataSerializer(byteBuf);
+
+                    PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", packetDataSerializer);
                     ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
                 } catch (Exception e) {
                     Logger.logException(e);
@@ -132,7 +139,10 @@ public class ClientUpdaterV2 extends Thread {
         } else {
             String leerInfo = id + "<" + dim + ":" + "1:1>" + dim;
             try {
-                PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", leerInfo.getBytes(Charsets.UTF_8));
+                ByteBuf byteBuf = ByteBufUtil.encodeString(ByteBufAllocator.DEFAULT, CharBuffer.wrap(leerInfo), Charsets.UTF_8);
+                PacketDataSerializer packetDataSerializer = new PacketDataSerializer(byteBuf);
+
+                PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", packetDataSerializer);
                 ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
             } catch (Exception e) {
                 Logger.logException(e);

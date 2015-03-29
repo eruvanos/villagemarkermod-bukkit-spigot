@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.siemering</groupId>
 	<artifactId>VillageMarker</artifactId>
-	<version>0.40</version>
+	<version>0.41</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
@@ -87,9 +87,9 @@
 								<property name="target"
 									location="${project.build.directory}\${project.artifactId}-${project.version}.jar" />
 								<property name="Bukkit"
-									location="C:\Users\Maic Siemering\Desktop\Bukkit Test\plugins\VillageMarker.jar" />
+									location="${user.home}\Desktop\Bukkit Test\plugins\VillageMarker.jar" />
 								<property name="BukkitVanilla"
-									location="C:\Users\Maic Siemering\Desktop\Vanilla Bukkit\plugins\VillageMarker.jar" />
+									location="${user.home}\Desktop\Vanilla Bukkit\plugins\VillageMarker.jar" />
 
 								<copy file="${target}" tofile="${Bukkit}" />
 								<copy file="${target}" tofile="${BukkitVanilla}" />
@@ -119,60 +119,14 @@
 				</executions>
 			</plugin>
 		</plugins>
-		<pluginManagement>
-			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
-					only. It has no influence on the Maven build itself. -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											org.apache.maven.plugins
-										</groupId>
-										<artifactId>
-											maven-antrun-plugin
-										</artifactId>
-										<versionRange>
-											[1.7,)
-										</versionRange>
-										<goals>
-											<goal>run</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<execute />
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 	</build>
 	<!-- Abhängigkeiten -->
 	<dependencies>
 		<dependency>
 			<groupId>org.bukkit</groupId>
-			<artifactId>bukkit</artifactId>
-			<version>1.7.10-R0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bukkit</groupId>
 			<artifactId>craftbukkit</artifactId>
-			<version>1.7.10-R0.1-SNAPSHOT</version>
+			<version>1.8.3-R0.1-SNAPSHOT</version>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.bukkit</groupId> -->
-		<!-- <artifactId>minecraft-server</artifactId> -->
-		<!-- <version>1.6.2</version> -->
-		<!-- </dependency> -->
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>

@@ -12,10 +12,10 @@ public class Logger {
 	 *            Exception
 	 */
 	public static void logException(Exception e) {
-		StringBuilder message = new StringBuilder("[VillageMarker] " + e.getMessage() + "\n");
+		StringBuilder message = new StringBuilder("[VillageMarker] ").append(e.getMessage()).append("\n");
 
 		for (StackTraceElement ste : e.getStackTrace()) {
-			message.append(ste.toString() + "\n");
+			message.append(ste.toString()).append("\n");
 		}
 
 		Bukkit.getLogger().log(Level.WARNING, message.toString());
