@@ -11,8 +11,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.v1_8_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.Field;
 import java.nio.CharBuffer;
 import java.util.*;
+import java.util.logging.Level;
+
+import static de.siemering.plugin.villagemarker.ReflectionUtils.getField;
+import static de.siemering.plugin.villagemarker.ReflectionUtils.makeAccessible;
 
 public class ClientUpdaterV2 extends Thread {
     private static int id = 0;
@@ -80,12 +85,28 @@ public class ClientUpdaterV2 extends Thread {
 
     }
 
+    private static List<Village> getVillages(WorldServer world) {
+        Object o = null;
+        try {
+            Field villagesF = getField(WorldServer.class, "villages");
+            makeAccessible(villagesF);
+            o = villagesF.get(world);
+        } catch (Exception e) {
+            Logger.logException(e);
+        }
+
+        if(o == null){
+            return new ArrayList<Village>();
+        }else{
+            return ((PersistentVillage) o).getVillages();
+        }
+    }
 
     private List<String> generateDataString(WorldServer world) {
         int dim = worldServerTodim(world);
 
         //DataString erstellen
-        List<Village> vs = VillageAccessor.getVillages(world).getVillages();
+        List<Village> vs = getVillages(world);
         StringBuilder sb = new StringBuilder("" + dim);
         for (Village village : vs) {
 
