@@ -1,7 +1,7 @@
 package de.siemering.plugin.villagemarker;
 
-import net.minecraft.server.v1_8_R2.PersistentVillage;
-import net.minecraft.server.v1_8_R2.WorldServer;
+import net.minecraft.server.v1_10_R1.PersistentVillage;
+import net.minecraft.server.v1_10_R1.WorldServer;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

@@ -4,11 +4,11 @@ import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
-import net.minecraft.server.v1_8_R2.*;
+import net.minecraft.server.v1_10_R1.*;
 import org.bukkit.*;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_8_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_10_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
@@ -108,6 +108,9 @@ public class ClientUpdaterV2 extends Thread {
         //DataString erstellen
         List<Village> vs = getVillages(world);
         StringBuilder sb = new StringBuilder("" + dim);
+
+        Bukkit.getLogger().warning("Found " + vs.size() + " Villages");
+
         for (Village village : vs) {
 
             sb.append(":").append(village.c());
