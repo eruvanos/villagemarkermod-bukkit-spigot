@@ -1,9 +1,9 @@
 package de.siemering.plugin.villagemarker;
 
 import com.google.common.base.Charsets;
-import net.minecraft.server.v1_8_R2.BlockPosition;
-import net.minecraft.server.v1_8_R2.Village;
-import net.minecraft.server.v1_8_R2.VillageDoor;
+import net.minecraft.server.v1_8_R3.BlockPosition;
+import net.minecraft.server.v1_8_R3.Village;
+import net.minecraft.server.v1_8_R3.VillageDoor;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;

@@ -1,10 +1,10 @@
 package de.siemering.plugin.villagemarker;
 
-import net.minecraft.server.v1_8_R2.BlockPosition;
-import net.minecraft.server.v1_8_R2.MinecraftServer;
-import net.minecraft.server.v1_8_R2.Village;
-import net.minecraft.server.v1_8_R2.VillageDoor;
-import org.bukkit.craftbukkit.v1_8_R2.CraftWorld;
+import net.minecraft.server.v1_8_R3.BlockPosition;
+import net.minecraft.server.v1_8_R3.MinecraftServer;
+import net.minecraft.server.v1_8_R3.Village;
+import net.minecraft.server.v1_8_R3.VillageDoor;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 
 import java.util.List;
 
