@@ -1,188 +1,138 @@
 package de.siemering.plugin.villagemarker;
 
 import com.google.common.base.Charsets;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.ByteBufUtil;
-import net.minecraft.server.v1_8_R2.*;
-import org.bukkit.*;
+import net.minecraft.server.v1_8_R2.BlockPosition;
+import net.minecraft.server.v1_8_R2.Village;
+import net.minecraft.server.v1_8_R2.VillageDoor;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_8_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.Field;
-import java.nio.CharBuffer;
-import java.util.*;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
-
-import static de.siemering.plugin.villagemarker.ReflectionUtils.getField;
-import static de.siemering.plugin.villagemarker.ReflectionUtils.makeAccessible;
+import java.util.zip.Deflater;
 
 public class ClientUpdaterV2 extends Thread {
-    private static int id = 0;
 
     private boolean stop = false;
-    private YamlConfiguration pconfig;
+    private static int id = 0;
+    private Map<String, String> worlds = new HashMap<String, String>();
 
-    public ClientUpdaterV2(YamlConfiguration pconfig) {
-        super();
-        this.pconfig = pconfig;
-    }
 
-    /**
-     * Setzt die Laufvariable "stop" auf gewuenschten Wert. Sobald die Variable auf true gesetzt wird, wird sich das Plugin nach der naechsten Updateverteilung an die Clients beenden.
-     */
     public void setStop(boolean stop) {
         this.stop = stop;
     }
 
-    /**
-     * Sendet alle 2 Sekunden ein Update der Villageinformationen an alle Clients mit den benoetigten Rechten.
-     */
     @Override
     public void run() {
         while (!stop) {
-            sendUpdateNEW();
+            sendUpdate();
 
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
-                //
             }
         }
     }
 
-    private void sendUpdateNEW() {
+    private int getDimByEnv(World world) {
+        switch (world.getEnvironment()) {
+            case NORMAL:  return  0;
+            case NETHER:  return -1;
+            case THE_END: return  1;
+            default:      return  0;
+        }
+    }
+
+    private void sendUpdate() {
         id = id >= 999 ? 0 : id + 1;
 
-        Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-        Map<UUID, List<String>> dataStringCache = new HashMap<UUID, List<String>>();
-        Map<UUID, WorldServer> worldCache = new HashMap<UUID, WorldServer>();
+        int maxSize;
 
-        List<WorldServer> worlds = MinecraftServer.getServer().worlds;
-        for (WorldServer world : worlds) {
-            worldCache.put(world.getWorld().getUID(), world);
+        for(World world : Bukkit.getWorlds()) {
+            worlds.put(world.getName(), createDataString(world));
         }
 
-        for (Player player : players) {
-            List<String> dataStringList;
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (!p.getListeningPluginChannels().contains(VillageMarker.DATA_CHANNEL)
+                && !p.getListeningPluginChannels().contains(VillageMarker.DATA_CHANNEL_COMPRESSED))
+                continue;
 
-            UUID worldUID = player.getWorld().getUID();
+            boolean sendCompressed = p.getListeningPluginChannels().contains(VillageMarker.DATA_CHANNEL_COMPRESSED);
+            World w = p.getWorld();
+            String toSend = worlds.get(w.getName());
+            ArrayList<String> dataStringList = new ArrayList<String>();
+            int parts;
+            int dim = getDimByEnv(w);
 
-            //Datastring erstellen und ggf cachen
-            if (dataStringCache.containsKey(worldUID)) {
-                dataStringList = dataStringCache.get(worldUID);
+            if(sendCompressed) maxSize = 150000;
+            else               maxSize = 10000;
+
+            if (toSend.length() > maxSize) {
+                parts = (int) Math.ceil(toSend.length() / maxSize);
+
+                for (int xPart = 0; xPart < parts; xPart++) {
+                    if (xPart + 1 == parts)
+                        dataStringList.add(id + "<" + dim + ":" + (xPart + 1) + ":" + parts + ">" + toSend.substring(maxSize * xPart, toSend.length()));
+                    else
+                        dataStringList.add(id + "<" + dim + ":" + (xPart + 1) + ":" + parts + ">" + toSend.substring(maxSize * xPart, maxSize * xPart + maxSize));
+                }
             } else {
-
-                dataStringList = generateDataString(worldCache.get(worldUID));
-                dataStringCache.put(worldUID, dataStringList);
+                dataStringList.add(id + "<" + dim + ":" + "1:1>" + toSend);
             }
 
-            //Versende Daten
-            sendDataToPlayer(player, dataStringList, worldServerTodim(worldCache.get(worldUID)));
-        }
-
-    }
-
-    private static List<Village> getVillages(WorldServer world) {
-        Object o = null;
-        try {
-            Field villagesF = getField(WorldServer.class, "villages");
-            makeAccessible(villagesF);
-            o = villagesF.get(world);
-        } catch (Exception e) {
-            Logger.logException(e);
-        }
-
-        if(o == null){
-            return new ArrayList<Village>();
-        }else{
-            return ((PersistentVillage) o).getVillages();
-        }
-    }
-
-    private List<String> generateDataString(WorldServer world) {
-        int dim = worldServerTodim(world);
-
-        //DataString erstellen
-        List<Village> vs = getVillages(world);
-        StringBuilder sb = new StringBuilder("" + dim);
-        for (Village village : vs) {
-
-            sb.append(":").append(village.c());
-             BlockPosition center = village.a();
-            sb.append(";").append(center.getX()).append(",").append(center.getY()).append(",").append(center.getZ());
-            List ds = village.f();
-            for (Object obj : ds) {
-
-                VillageDoor d = (VillageDoor) obj;
-                //.d() oder .e()
-                sb.append(";").append(d.d().getX()).append(",").append(d.d().getY()).append(",").append(d.d().getZ());
-            }
-        }
-
-        // Datenstring ggf aufteilen
-        String dataString = sb.toString();
-        ArrayList<String> dataStringList = new ArrayList<String>();
-
-        if (dataString.length() > 10000) {
-            int parts = (int) Math.ceil(dataString.length() / 10000.);
-
-            for (int xPart = 0; xPart < parts; xPart++) {
-                if (xPart + 1 == parts)
-                    dataStringList.add(id + "<" + dim + ":" + (xPart + 1) + ":" + parts + ">" + dataString.substring(10000 * xPart, dataString.length()));
-                else
-                    dataStringList.add(id + "<" + dim + ":" + (xPart + 1) + ":" + parts + ">" + dataString.substring(10000 * xPart, 10000 * xPart + 10000));
-            }
-        } else {
-            dataStringList.add(id + "<" + dim + ":" + "1:1>" + dataString);
-        }
-
-        return dataStringList;
-    }
-
-    private void sendDataToPlayer(Player p, List<String> dataStringList, int dim) {
-
-
-        if (p.hasPermission(VillageMarker.VILLAGEPERMISSION) && pconfig.getBoolean(p.getName(), true)) {
             for (String data : dataStringList) {
-                try {
-                    ByteBuf byteBuf = ByteBufUtil.encodeString(ByteBufAllocator.DEFAULT, CharBuffer.wrap(data), Charsets.UTF_8);
-                    PacketDataSerializer packetDataSerializer = new PacketDataSerializer(byteBuf);
+                if (sendCompressed) {
+                    try {
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-                    PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", packetDataSerializer);
-                    ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
-                } catch (Exception e) {
-                    Logger.logException(e);
+                        VillageGZIPOutputStream gzipOutputStream = new VillageGZIPOutputStream(byteArrayOutputStream);
+                        gzipOutputStream.setLevel(Deflater.BEST_COMPRESSION);
+                        gzipOutputStream.write(data.getBytes(Charsets.UTF_8));
+                        gzipOutputStream.close();
+
+                        byte[] compressedData = byteArrayOutputStream.toByteArray();
+                        byteArrayOutputStream.close();
+                        p.sendPluginMessage(VillageMarker.instance, VillageMarker.DATA_CHANNEL_COMPRESSED, compressedData);
+                    } catch(Exception e) { }
+                } else {
+                    p.sendPluginMessage(VillageMarker.instance, VillageMarker.DATA_CHANNEL, data.getBytes(Charsets.UTF_8));
                 }
             }
-        } else {
-            String leerInfo = id + "<" + dim + ":" + "1:1>" + dim;
-            try {
-                ByteBuf byteBuf = ByteBufUtil.encodeString(ByteBufAllocator.DEFAULT, CharBuffer.wrap(leerInfo), Charsets.UTF_8);
-                PacketDataSerializer packetDataSerializer = new PacketDataSerializer(byteBuf);
+        }
 
-                PacketPlayOutCustomPayload packet = new PacketPlayOutCustomPayload("KVM|Data", packetDataSerializer);
-                ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
-            } catch (Exception e) {
-                Logger.logException(e);
+    }
+
+    private String createDataString(World world) {
+        try {
+            List<Village> vs = ObfHelper.getVillages(world);
+
+            StringBuilder sb = new StringBuilder(Integer.toString(getDimByEnv(world)));
+            for (Village village : vs) {
+
+                sb.append(":" + ObfHelper.villageGetSize(village));
+                BlockPosition center = ObfHelper.villageGetCenter(village);
+
+                sb.append(";" + center.getX() + "," + center.getY() + "," + center.getZ());
+
+                List<VillageDoor> ds = ObfHelper.villageGetDoors(village);
+                for (VillageDoor d : ds) {
+                    BlockPosition dp = ObfHelper.villageDoorsgetBlockPosition(d);
+                    sb.append(";" + dp.getX() + "," + dp.getY() + "," + dp.getZ());
+                }
             }
+            return sb.toString();
+
+        } catch (Exception e) {
+            Bukkit.getLogger().log(Level.WARNING, e.getMessage());
+            e.printStackTrace();
         }
+        // If all else fails
+
+        return String.valueOf(getDimByEnv(world));
     }
-
-    private int worldServerTodim(WorldServer worldServer){
-        World.Environment environment = worldServer.getWorld().getEnvironment();
-
-        if(environment == World.Environment.NORMAL){
-            return 0;
-        } else if(environment == World.Environment.NETHER){
-            return -1;
-        } else {
-            return 1;
-        }
-
-    }
-
-
 }

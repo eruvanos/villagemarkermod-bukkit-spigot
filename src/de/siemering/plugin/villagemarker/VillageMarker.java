@@ -1,75 +1,70 @@
 package de.siemering.plugin.villagemarker;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
 
-import de.siemering.plugin.villagemarker.command.VMCommand;
+import java.util.logging.Level;
 
 public class VillageMarker extends JavaPlugin {
 
+    public static VillageMarker instance;
+
+    private ClientUpdaterV2 updater;
+	
 	protected static final String VILLAGEPERMISSION = "villagemarker";
-	private static final String CONFIGFILE = "player.yml";
 
-	private static YamlConfiguration pconfig;
+    public static final String POLL_CHANNEL = "KVM|Poll";
+    public static final String DATA_CHANNEL = "KVM|Data";
+    public static final String DATA_CHANNEL_COMPRESSED = "KVM|DataComp";
 
-	private String CONFIGPATH;
-	private ClientUpdaterV2 updater;
+    public static final String ANSWER_CHANNEL = "KVM|Answer";
+
+    protected VillageMarkerListener listener = new VillageMarkerListener();
 
 	
 	@Override
 	public void onEnable() {
 		super.onEnable();
-		
-		//configs
-		CONFIGPATH = getDataFolder() + "/" + CONFIGFILE;
-		loadConfigs();
 
-		// updater
-		updater = new ClientUpdaterV2(pconfig);
+        // this.getServer().getMessenger().registerIncomingPluginChannel(this, DATA_CHANNEL, listener);
+        this.getServer().getMessenger().registerOutgoingPluginChannel(this, DATA_CHANNEL);
+        this.getServer().getMessenger().registerOutgoingPluginChannel(this, DATA_CHANNEL_COMPRESSED);
+        instance = this;
+
+		updater = new ClientUpdaterV2();
 		updater.start();
-
-		// commands
-		getCommand("vm").setExecutor(new VMCommand(pconfig));
-
-
+		
 	}
-
+	
+	
 	@Override
 	public void onDisable() {
-		super.onDisable();
-
-		// configs
-		saveConfigs();
-
-		// updater
 		updater.setStop(true);
+		
 		try {
 			updater.join();
 		} catch (InterruptedException e) {
-			Logger.logException(e);
+			getLogger().log(Level.WARNING, e.getMessage());
 		}
+		super.onDisable();
 	}
 
-//	public YamlConfiguration getConfig() {
-//		if (pconfigs == null) {
-//			loadConfig();
-//		}
-//		return pconfig;
-//	}
+    class VillageMarkerListener implements PluginMessageListener {
 
-	private void loadConfigs() {
-		pconfig = YamlConfiguration.loadConfiguration(new File(CONFIGPATH));
-	}
-
-	private void saveConfigs() {
-		try {
-			pconfig.save(CONFIGPATH);
-		} catch (IOException e) {
-			Logger.logException(e);
-		}
-	}
-
+        /**
+         * A method that will be thrown when a PluginMessageSource sends a plugin
+         * message on a registered channel.
+         *
+         * @param channel Channel that the message was sent through.
+         * @param player  Source of the message.
+         * @param message The raw message that was sent.
+         */
+        @Override
+        public void onPluginMessageReceived(String channel, Player player, byte[] message) {
+            // Do nothing?
+        }
+    }
+	
+	
 }

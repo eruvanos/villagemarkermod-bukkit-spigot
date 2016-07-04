@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.siemering</groupId>
 	<artifactId>VillageMarker</artifactId>
-	<version>0.41</version>
+	<version>0.41.1</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
@@ -56,20 +56,6 @@
 									message="        description: Send village information to the client with these permission.${line.separator}" />
 								<echo file="${pluginfile}" append="true"
 									message="        default: true${line.separator}" />
-
-								<echo file="${pluginfile}" append="true"
-									message="commands:${line.separator}" />
-								<echo file="${pluginfile}" append="true"
-									message="    vm:${line.separator}" />
-								<echo file="${pluginfile}" append="true"
-									message="        description: Command for VillageMarkerMod${line.separator}" />
-								<echo file="${pluginfile}" append="true"
-									message="        usage: vm [on|off|t]${line.separator}" />
-								<echo file="${pluginfile}" append="true"
-									message="        permission: villagemarker${line.separator}" />
-								<echo file="${pluginfile}" append="true"
-									message="        permission-message: You don't have permission.${line.separator}" />
-
 							</target>
 						</configuration>
 					</execution>
