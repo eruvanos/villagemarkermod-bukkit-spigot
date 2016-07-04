@@ -73,53 +73,52 @@
 							</target>
 						</configuration>
 					</execution>
-
-					<!-- Copy jar to Bukkit Enviroments -->
-					<execution>
-						<id>copy</id>
-						<phase>install</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<target name="Copy">
-
-								<property name="target"
-									location="${project.build.directory}\${project.artifactId}-${project.version}.jar" />
-								<property name="Bukkit"
-									location="${user.home}\Desktop\Bukkit Test\plugins\VillageMarker.jar" />
-								<property name="BukkitVanilla"
-									location="${user.home}\Desktop\Vanilla Bukkit\plugins\VillageMarker.jar" />
-
-								<copy file="${target}" tofile="${Bukkit}" />
-								<copy file="${target}" tofile="${BukkitVanilla}" />
-							</target>
-						</configuration>
-					</execution>
-
-<!-- 					<execution> -->
-<!-- 						<id>packDependency</id> -->
-<!-- 						<phase>compile</phase> -->
-<!-- 						<goals> -->
-<!-- 							<goal>run</goal> -->
-<!-- 						</goals> -->
-<!-- 						<configuration> -->
-<!-- 							<target name="DUnpack"> -->
-<!-- 								<property name="log4jPath" location="${maven.dependency.log4j.log4j.jar.path}" /> -->
-<!-- 								<echo message="${log4jPath}"/> -->
-								
-<!-- 								<unzip src="${log4jPath}" dest="${project.build.outputDirectory}"> -->
-<!-- 									<patternset> -->
-<!-- 										<exclude name="META-INF"/> -->
-<!-- 									</patternset> -->
-<!-- 								</unzip> -->
-<!-- 							</target> -->
-<!-- 						</configuration> -->
-<!-- 					</execution> -->
 				</executions>
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>copyToServer</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+						<!-- Copy jar to Bukkit Enviroments -->
+						<executions>
+							<execution>
+								<id>copy</id>
+								<phase>install</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target name="Copy">
+
+										<property name="target"
+												  location="${project.build.directory}\${project.artifactId}-${project.version}.jar"/>
+										<property name="Bukkit"
+												  location="P:\spigot\SERVER\plugins\VillageMarker.jar"/>
+										<property name="BukkitVanilla"
+												  location="${user.home}\Desktop\Vanilla Bukkit\plugins\VillageMarker.jar"/>
+
+										<copy file="${target}" tofile="${Bukkit}"/>
+										<!--<copy file="${target}" tofile="${BukkitVanilla}" />-->
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+				</plugins>
+
+			</build>
+
+		</profile>
+	</profiles>
+
 	<!-- Abhängigkeiten -->
 	<dependencies>
 		<dependency>
