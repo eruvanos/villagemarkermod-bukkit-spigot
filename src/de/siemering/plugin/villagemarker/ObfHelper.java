@@ -1,10 +1,11 @@
 package de.siemering.plugin.villagemarker;
 
-import net.minecraft.server.v1_8_R3.BlockPosition;
-import net.minecraft.server.v1_8_R3.MinecraftServer;
-import net.minecraft.server.v1_8_R3.Village;
-import net.minecraft.server.v1_8_R3.VillageDoor;
-import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
+import net.minecraft.server.v1_9_R2.BlockPosition;
+import net.minecraft.server.v1_9_R2.Village;
+import net.minecraft.server.v1_9_R2.VillageDoor;
+import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_9_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
 
 import java.util.List;
 
@@ -35,12 +36,12 @@ public class ObfHelper {
 
     protected static List<Village> getVillages(int index) {
         // World -> PersistentVillage -> Villages
-        return MinecraftServer.getServer().worlds.get(index).ae().getVillages();
+        return ((CraftServer) Bukkit.getServer()).getServer().worlds.get(index).ai().getVillages();
     }
 
     protected static List<Village> getVillages(org.bukkit.World world) {
         // World -> PersistentVillage -> Villages
-        return ((CraftWorld) world).getHandle().ae().getVillages();
+        return ((CraftWorld) world).getHandle().ai().getVillages();
     }
 
 }

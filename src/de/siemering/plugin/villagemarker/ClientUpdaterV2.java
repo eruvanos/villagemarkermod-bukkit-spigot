@@ -1,13 +1,5 @@
 package de.siemering.plugin.villagemarker;
 
-import com.google.common.base.Charsets;
-import net.minecraft.server.v1_8_R3.BlockPosition;
-import net.minecraft.server.v1_8_R3.Village;
-import net.minecraft.server.v1_8_R3.VillageDoor;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
-
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.zip.Deflater;
+
+import com.google.common.base.Charsets;
+
+import net.minecraft.server.v1_9_R2.BlockPosition;
+import net.minecraft.server.v1_9_R2.Village;
+import net.minecraft.server.v1_9_R2.VillageDoor;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 public class ClientUpdaterV2 extends Thread {
 
