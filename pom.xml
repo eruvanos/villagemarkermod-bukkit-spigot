@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.siemering</groupId>
 	<artifactId>VillageMarker</artifactId>
-	<version>0.43</version>
+	<version>0.44</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
@@ -86,9 +86,9 @@
 										<property name="target"
 												  location="${project.build.directory}\${project.artifactId}-${project.version}.jar"/>
 										<property name="Bukkit"
-												  location="P:\spigot\SERVER\plugins\VillageMarker.jar"/>
-										<property name="BukkitVanilla"
-												  location="${user.home}\Desktop\Vanilla Bukkit\plugins\VillageMarker.jar"/>
+												  location="D:\workspace\spigot\SERVER\plugins\VillageMarker.jar"/>
+										<!--<property name="BukkitVanilla"-->
+												  <!--location="${user.home}\Desktop\Vanilla Bukkit\plugins\VillageMarker.jar"/>-->
 
 										<copy file="${target}" tofile="${Bukkit}"/>
 										<!--<copy file="${target}" tofile="${BukkitVanilla}" />-->
@@ -110,7 +110,7 @@
 		<dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>craftbukkit</artifactId>
-			<version>1.10.2-R0.1-SNAPSHOT</version>
+			<version>1.11-R0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
