@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.siemering</groupId>
 	<artifactId>VillageMarker</artifactId>
-	<version>0.44</version>
+	<version>0.45</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
@@ -110,7 +110,7 @@
 		<dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>craftbukkit</artifactId>
-			<version>1.11-R0.1-SNAPSHOT</version>
+			<version>1.11.2-R0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
